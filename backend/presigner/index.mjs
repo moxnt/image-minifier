@@ -4,10 +4,11 @@ import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 export const handler = async (event) => {
   const { fileName, fileType } = JSON.parse(event.body || "{}");
+  const key = `uploads/${Date.now()}-${fileName}`;
 
   const command = new PutObjectCommand({
     Bucket: "image-minifier-uploads",
-    Key: `uploads/${Date.now()}-${fileName}`,
+    Key: key,
     ContentType: fileType,
   });
 
@@ -18,9 +19,9 @@ export const handler = async (event) => {
       statusCode: 200,
       headers: {
         "Access-Control-Allow-Origin": "*",
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify({ uploadURL })
+      body: JSON.stringify({ uploadURL, key }),
     };
   } catch (error) {
     return { statusCode: 500, body: JSON.stringify({ error: error.message }) };
