@@ -1,5 +1,5 @@
 export type PresignerBody = {
-  uploadURL: URL;
+  presignedURL: URL;
   key: string;
 };
 

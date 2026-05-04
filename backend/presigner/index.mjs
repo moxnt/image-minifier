@@ -34,7 +34,7 @@ export const handler = async (event) => {
         return {
           statusCode: 200,
           headers: headers,
-          body: JSON.stringify({ uploadURL, fileKey }),
+          body: JSON.stringify({ presignedURL: uploadURL, key: fileKey }),
         };
       }
 
@@ -59,7 +59,7 @@ export const handler = async (event) => {
         return {
           statusCode: 200,
           headers,
-          body: JSON.stringify({ downloadURL }),
+          body: JSON.stringify({ presignedURL: downloadURL, key }),
         };
       }
 

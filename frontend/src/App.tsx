@@ -21,7 +21,6 @@ function App() {
       index: index,
       url: null,
     }));
-    console.log(files);
     setFiles(files);
   }, []);
 
@@ -82,7 +81,7 @@ function App() {
 
       updateStatus(index, "signed");
 
-      const upload_response = await fetch(presigned_url.uploadURL, {
+      const upload_response = await fetch(presigned_url.presignedURL, {
         method: "PUT",
         body: files[0].file,
         headers: {
@@ -90,15 +89,29 @@ function App() {
         },
       });
 
-      if (upload_response.ok) {
-        updateStatus(index, "uploaded");
+      if (!upload_response.ok) {
+        updateStatus(index, "faulty");
       }
+
+      const optimizedKey = presigned_url.key.replace(/\.[^/.]+$/, ".webp");
+
+      const presigned_download = await fetch(request_url, {
+        method: "POST",
+        body: JSON.stringify({
+          key: optimizedKey,
+          action: "getDownloadURL",
+        }),
+      });
+
+      const download_data: PresignerBody = await presigned_download.json();
+      updateURL(index, download_data.presignedURL);
     } catch (error) {
       console.error("An error ocurred within fetch ", error);
       updateStatus(index, "faulty");
     }
   }
 
+  console.log(files);
   return (
     <>
       <section id="center" className="border-0 w-2/3 m-auto">
@@ -107,10 +120,11 @@ function App() {
           Convert your images to .webp and save on space without compromising
           visuals
         </h2>
+        {/*
         <div className="grid grid-cols-2 gap-4 px-4 justify-between w-full">
           <input type="range"></input>
           <input type="range"></input>
-        </div>
+        </div>*/}
         <section className="h-1/2 w-full border-6 border-green-800 rounded-lg content-center">
           <div className="w-full h-full" {...getRootProps()}>
             <input {...getInputProps()} />
@@ -122,6 +136,7 @@ function App() {
                       key={index}
                       filename={uploaded_file.file.name || "test"}
                       status={uploaded_file.status}
+                      url={uploaded_file.url || undefined}
                     />
                   ))}
             </div>
@@ -133,6 +148,9 @@ function App() {
         >
           Convert!
         </button>
+        <p>
+          If you're reading this, the converter still does one image at a time.
+        </p>
       </section>
     </>
   );
