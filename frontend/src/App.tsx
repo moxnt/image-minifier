@@ -111,7 +111,6 @@ function App() {
     }
   }
 
-  console.log(files);
   return (
     <>
       <section id="center" className="border-0 w-2/3 m-auto">

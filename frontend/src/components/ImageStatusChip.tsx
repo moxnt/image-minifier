@@ -41,9 +41,9 @@ export default function ImageStatusChip({
       onClick={(e) => {
         e.stopPropagation();
       }}
-      href={filename?.replace(/\.[^/.]+$/, ".webp")}
+      href={url.toString()}
       className="p-4 rounded-lg bg-gray-800 flex flex-row gap-2"
-      download={true}
+      download={filename?.replace(/\.[^/.]+$/, ".webp")}
     >
       <span>{filename}</span>
       {IconComponent && <IconComponent />}

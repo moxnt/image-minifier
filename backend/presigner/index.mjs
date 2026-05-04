@@ -13,7 +13,7 @@ export const handler = async (event) => {
     const { action, fileName, fileType, key } = JSON.parse(event.body || "{}");
 
     const headers = {
-      "Access-Control-Allow-Origin": "*", // Replace with your Vite URL in production
+      "Access-Control-Allow-Origin": "*",
       "Access-Control-Allow-Headers": "Content-Type",
       "Access-Control-Allow-Methods": "POST, OPTIONS",
       "Content-Type": "application/json",
