@@ -43,7 +43,7 @@ export default function ImageStatusChip({
       }}
       href={url.toString()}
       className="p-4 rounded-lg bg-gray-800 flex flex-row gap-2"
-      download={filename?.replace(/\.[^/.]+$/, ".webp")}
+      download={true}
     >
       <span>{filename}</span>
       {IconComponent && <IconComponent />}
