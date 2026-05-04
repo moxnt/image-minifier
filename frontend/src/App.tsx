@@ -1,33 +1,61 @@
 import { useDropzone } from "react-dropzone";
 import "./App.css";
 import { useCallback, useState } from "react";
+import ImageStatusChip from "./components/ImageStatusChip";
+import type { FileStatus, PresignerBody } from "./types";
 
-type PresignerBody = {
-  uploadURL: URL;
+type FileInProcessing = {
+  file: File;
+  status: FileStatus;
+  index: number;
+  url: URL | null;
 };
 
-function InternalContent({ filename }: { filename: string | undefined }) {
-  if (filename === undefined) {
-    return <h1>"Drag 'n' drop some files here, or click to select files"</h1>;
-  } else {
-    return <div className="p-4 rounded-lg bg-gray-800">{filename}</div>;
-  }
-}
-
 function App() {
-  const [files, setFiles] = useState<File[]>([]);
-  const [filename, setFilename] = useState<string | undefined>(undefined);
+  const [files, setFiles] = useState<FileInProcessing[]>([]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    setFiles(acceptedFiles);
-    if (acceptedFiles[0] === undefined) {
-      console.warn("No files yet (c)");
-      return;
-    }
-    setFilename(acceptedFiles[0].name);
+    const files = acceptedFiles.map((file, index) => ({
+      file: file,
+      status: "added" as const,
+      index: index,
+      url: null,
+    }));
+    console.log(files);
+    setFiles(files);
   }, []);
 
   const { getRootProps, getInputProps } = useDropzone({ onDrop });
+
+  function updateStatus(index: number, status: FileStatus) {
+    setFiles((files) =>
+      files.map((file) =>
+        file.index === index
+          ? {
+              file: file.file,
+              status: status,
+              index: index,
+              url: file.url,
+            }
+          : file,
+      ),
+    );
+  }
+
+  function updateURL(index: number, url: URL) {
+    setFiles((files) =>
+      files.map((file) =>
+        file.index === index
+          ? {
+              file: file.file,
+              status: "processed",
+              index: index,
+              url: url,
+            }
+          : file,
+      ),
+    );
+  }
 
   async function upload() {
     const request_url =
@@ -38,26 +66,36 @@ function App() {
       return;
     }
 
+    const index = files[0].index;
+
     try {
       const presigner_data = await fetch(request_url, {
         method: "POST",
         body: JSON.stringify({
-          fileType: files[0].type,
-          fileName: files[0].name,
+          fileType: files[0].file.type,
+          fileName: files[0].file.name,
+          action: "getUploadURL",
         }),
       });
+
       const presigned_url: PresignerBody = await presigner_data.json();
+
+      updateStatus(index, "signed");
 
       const upload_response = await fetch(presigned_url.uploadURL, {
         method: "PUT",
-        body: files[0],
+        body: files[0].file,
         headers: {
-          "Content-Type": files[0].type,
+          "Content-Type": files[0].file.type,
         },
       });
-      console.log(upload_response);
+
+      if (upload_response.ok) {
+        updateStatus(index, "uploaded");
+      }
     } catch (error) {
       console.error("An error ocurred within fetch ", error);
+      updateStatus(index, "faulty");
     }
   }
 
@@ -76,8 +114,16 @@ function App() {
         <section className="h-1/2 w-full border-6 border-green-800 rounded-lg content-center">
           <div className="w-full h-full" {...getRootProps()}>
             <input {...getInputProps()} />
-            <div className="h-full flex justify-center items-center">
-              <InternalContent filename={filename} />
+            <div className="h-full flex justify-center items-center p-2 gap-2">
+              {files.length === 0
+                ? "Click to upload an image or drag 'n' drop it in the area!"
+                : files.map((uploaded_file, index) => (
+                    <ImageStatusChip
+                      key={index}
+                      filename={uploaded_file.file.name || "test"}
+                      status={uploaded_file.status}
+                    />
+                  ))}
             </div>
           </div>
         </section>

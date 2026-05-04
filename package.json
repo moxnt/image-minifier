@@ -1,0 +1,10 @@
+{
+  "name": "image-minifier",
+  "private": true,
+  "scripts": {
+    "deploy:presigner": "zip -j tmp.zip backend/presigner/index.mjs && aws lambda update-function-code --function-name ImageMinifierPresigner --zip-file fileb://tmp.zip && rm tmp.zip",
+    "deploy:processor": "zip -j tmp.zip backend/processor/index.mjs && aws lambda update-function-code --function-name ImageMinifierL --zip-file fileb://tmp.zip && rm tmp.zip",
+    "logs:presigner": "aws logs tail /aws/lambda/ImageMinifierPresigner --follow",
+    "logs:processor": "aws logs tail /aws/lambda/ImageMinifierL --follow"
+  }
+}
